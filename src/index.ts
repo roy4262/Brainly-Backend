@@ -17,7 +17,7 @@ const app = Express();
 
 // ✅ Only allow your deployed frontend
 const allowedOrigins = [
-  'https://brainly-second-brain.netlify.app'
+  process.env.FRONTEND_URL_1,
 ];
 
 app.use(cors({
