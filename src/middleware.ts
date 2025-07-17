@@ -11,7 +11,11 @@ interface JwtPayload {
   id: string;
 }
 
-export const userMiddleware = (req: Request, res: Response, next: NextFunction) => {
+export interface AuthenticatedRequest extends Request {
+  userId?: string;
+}
+
+export const userMiddleware = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   const authHeader = req.headers['authorization'];
 
   if (!authHeader) {
@@ -21,8 +25,7 @@ export const userMiddleware = (req: Request, res: Response, next: NextFunction) 
   try {
     const decoded = jwt.verify(authHeader, JWT_SECRET) as JwtPayload;
 
-    // Attach userId to request
-    // @ts-ignore
+    
     req.userId = decoded.id;
 
     next();
