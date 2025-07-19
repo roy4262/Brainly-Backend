@@ -1,10 +1,11 @@
-import Express from "express";
+import express, { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import "./db"; // Import to establish database connection
 import { ContentModel, LinkModel, UserModel } from "./db";
-import { userMiddleware } from "./middleware";
+import { userMiddleware, AuthenticatedRequest } from "./middleware";
 import { randomString } from "./utils";
 import dotenv from "dotenv";
+import cors from "cors";
 
 // Load environment variables
 dotenv.config();
@@ -13,8 +14,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "default-secret-key";
 const PORT = process.env.PORT || 3000;
 const NODE_ENV = process.env.NODE_ENV || "development";
 
-const cors = require('cors');
-const app = Express();
+const app = express();
 
 // ✅ Only allow your deployed frontend
 const allowedOrigins = [
@@ -23,7 +23,7 @@ const allowedOrigins = [
   process.env.FRONTEND_URL_PROD,
   'http://localhost:5173', // For local development
   'http://127.0.0.1:5173'  // For local development
-].filter(Boolean); // Remove undefined values
+].filter(Boolean) as string[]; // Remove undefined values and assert as string array
 
 app.use(cors({
   origin: allowedOrigins.length > 0 ? allowedOrigins : true, // Allow all if no origins specified
@@ -35,10 +35,10 @@ app.use(cors({
 // Handle preflight requests
 app.options('*', cors());
 
-app.use(Express.json());
+app.use(express.json());
 //pk
 // ✅ Health check endpoint
-app.get("/api/v1/health", (req, res) => {
+app.get("/api/v1/health", (req: Request, res: Response) => {
   res.status(200).json({
     status: "OK",
     timestamp: new Date().toISOString(),
@@ -47,7 +47,7 @@ app.get("/api/v1/health", (req, res) => {
 });
 
 // ✅ User Signup
-app.post("/api/v1/signup", async (req, res) => {
+app.post("/api/v1/signup", async (req: Request, res: Response) => {
   const { username, password } = req.body;
   try {
     await UserModel.create({ username, password });
@@ -58,7 +58,7 @@ app.post("/api/v1/signup", async (req, res) => {
 });
 
 // ✅ User Signin
-app.post("/api/v1/signin", async (req, res) => {
+app.post("/api/v1/signin", async (req: Request, res: Response) => {
   try {
     const { username, password } = req.body;
     const existingUser = await UserModel.findOne({ username, password });
@@ -75,7 +75,7 @@ app.post("/api/v1/signin", async (req, res) => {
 });
 
 // ✅ Create Content
-app.post("/api/v1/content", userMiddleware, async (req, res) => {
+app.post("/api/v1/content", userMiddleware, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { type, link } = req.body;
     const newContent = await ContentModel.create({
@@ -93,7 +93,7 @@ app.post("/api/v1/content", userMiddleware, async (req, res) => {
 });
 
 // ✅ Get Content
-app.get("/api/v1/content", userMiddleware, async (req, res) => {
+app.get("/api/v1/content", userMiddleware, async (req: AuthenticatedRequest, res: Response) => {
   try {
   
     const userId = req.userId;
@@ -105,7 +105,7 @@ app.get("/api/v1/content", userMiddleware, async (req, res) => {
 });
 
 // ✅ Delete Content
-app.delete("/api/v1/content", userMiddleware, async (req, res) => {
+app.delete("/api/v1/content", userMiddleware, async (req: AuthenticatedRequest, res: Response) => {
   const contentId = req.body.contentId;
   await ContentModel.deleteMany({
     _id: contentId,
@@ -116,7 +116,7 @@ app.delete("/api/v1/content", userMiddleware, async (req, res) => {
 });
 
 // ✅ Brain Share
-app.post("/api/v1/brain/share", userMiddleware, async (req, res) => {
+app.post("/api/v1/brain/share", userMiddleware, async (req: AuthenticatedRequest, res: Response) => {
   const share = req.body.share;
   if (share) {
     const existLink = await LinkModel.findOne({
@@ -146,7 +146,7 @@ app.post("/api/v1/brain/share", userMiddleware, async (req, res) => {
 });
 
 // ✅ Access Shared Brain Link
-app.get("/api/v1/brain/:shareLink", async (req, res) => {
+app.get("/api/v1/brain/:shareLink", async (req: Request, res: Response) => {
   const hash = req.params.shareLink;
   const link = await LinkModel.findOne({ hash });
   if (!link) {
@@ -171,7 +171,7 @@ app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);
   console.log(`Environment: ${NODE_ENV}`);
   console.log(`CORS Origins:`, allowedOrigins);
-}).on('error', (err) => {
+}).on('error', (err: any) => {
   console.error('Server failed to start:', err);
   process.exit(1);
 });

@@ -29,7 +29,7 @@ export const userMiddleware = (req: AuthenticatedRequest, res: Response, next: N
     req.userId = decoded.id;
 
     next();
-  } catch (err) {
+  } catch (err: any) {
     console.error("JWT verification failed:", err);
     return res.status(403).json({ msg: "Invalid or expired token" });
   }
