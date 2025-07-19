@@ -11,7 +11,8 @@ interface JwtPayload {
   id: string;
 }
 
-export interface AuthenticatedRequest extends Request {
+// Use intersection type to add userId to Request
+export type AuthenticatedRequest = Request & {
   userId?: string;
 }
 
