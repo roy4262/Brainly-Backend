@@ -1,5 +1,6 @@
 import Express from "express";
 import jwt from "jsonwebtoken";
+import "./db"; // Import to establish database connection
 import { ContentModel, LinkModel, UserModel } from "./db";
 import { userMiddleware } from "./middleware";
 import { randomString } from "./utils";
@@ -18,10 +19,14 @@ const app = Express();
 // ✅ Only allow your deployed frontend
 const allowedOrigins = [
   process.env.FRONTEND_URL_1,
-];
+  process.env.FRONTEND_URL_2,
+  process.env.FRONTEND_URL_PROD,
+  'http://localhost:5173', // For local development
+  'http://127.0.0.1:5173'  // For local development
+].filter(Boolean); // Remove undefined values
 
 app.use(cors({
-  origin: allowedOrigins,
+  origin: allowedOrigins.length > 0 ? allowedOrigins : true, // Allow all if no origins specified
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
@@ -165,4 +170,8 @@ app.get("/api/v1/brain/:shareLink", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);
   console.log(`Environment: ${NODE_ENV}`);
+  console.log(`CORS Origins:`, allowedOrigins);
+}).on('error', (err) => {
+  console.error('Server failed to start:', err);
+  process.exit(1);
 });
