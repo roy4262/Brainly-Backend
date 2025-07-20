@@ -18,16 +18,20 @@ export type AuthenticatedRequest = Request & {
 
 export const userMiddleware = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   const authHeader = req.headers['authorization'];
+  
+  console.log('Authorization header:', authHeader);
 
   if (!authHeader) {
+    console.log('No authorization header found');
     return res.status(401).json({ msg: "Authorization header missing" });
   }
 
   try {
     const decoded = jwt.verify(authHeader, JWT_SECRET) as JwtPayload;
-
+    console.log('JWT decoded successfully:', decoded);
     
     req.userId = decoded.id;
+    console.log('User ID set to:', req.userId);
 
     next();
   } catch (err: any) {

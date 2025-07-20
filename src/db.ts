@@ -17,15 +17,23 @@ mongoose.connect(MONGODB_URI).then(() => {
 const UserSchema=new Schema({
     username:{type:String,unique:true},
     password:String,
+    shareHash:{type:String,unique:true,sparse:true}, // For brain sharing
 })
 
 const ContentSchema=new Schema({
-    title:String,
+    title:{type:String,required:true},
     link:String,
     tags:[{type:mongoose.Types.ObjectId,ref:'Tag'}],
-    type:String,
+    type:{
+        type:String,
+        required:true,
+        enum:['youtube','twitter','document','link']
+    },
     userId:{type:mongoose.Types.ObjectId,ref:'User',required:true},
+    filename:String, // For document uploads
     // authorId:{type:mongoose.Types.ObjectId,ref:'User',required:true}
+}, {
+    timestamps: true // This will add createdAt and updatedAt fields
 })
 
 const LinkSchema=new Schema({
