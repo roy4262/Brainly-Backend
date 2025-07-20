@@ -23,6 +23,7 @@ const allowedOrigins = [
   process.env.FRONTEND_URL_PROD,    // Production Netlify URL
   process.env.FRONTEND_URL_1,       // Additional frontend URL
   process.env.FRONTEND_URL_2,       // Additional frontend URL
+  'https://brainly-second-brain.netlify.app',  // Hardcoded Netlify URL
   'http://localhost:5173',          // Local development
   'http://localhost:5174',          // Local development (alternative port)
   'http://127.0.0.1:5173',         // Local development
@@ -34,10 +35,18 @@ console.log('🔧 Environment:', NODE_ENV);
 
 app.use(cors({
   origin: (origin, callback) => {
+    console.log('🌐 CORS Request from origin:', origin);
+    console.log('🔧 Allowed origins:', allowedOrigins);
+    console.log('🔧 Environment:', NODE_ENV);
+    
     // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
+    if (!origin) {
+      console.log('✅ Allowing request with no origin');
+      return callback(null, true);
+    }
     
     if (allowedOrigins.includes(origin)) {
+      console.log('✅ Origin allowed:', origin);
       return callback(null, true);
     }
     
@@ -48,6 +57,7 @@ app.use(cors({
     }
     
     console.log('❌ CORS blocked origin:', origin);
+    console.log('❌ Available origins:', allowedOrigins);
     return callback(new Error('Not allowed by CORS'));
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
